@@ -1,0 +1,39 @@
+{
+  "identifier": "zhuiyue.gpt.translator",
+  "version": "1.0.0",
+  "category": "translate",
+  "name": "GPT Translator",
+  "summary": "GPT powered translator",
+  "author": "zhuiyue132 <fenda.app@qq.com>",
+  "homepage": "https://github.com/zhuiyue132/bob-plugin-gpt-translator",
+  "options": [
+    {
+      "identifier": "apiUrl",
+      "type": "text",
+      "title": "API URL",
+      "defaultValue": "",
+      "desc": "部署潘多拉后的 url，最好可以公网访问，不要轻易暴露该 url，否则可能会有隐私泄露的风险",
+      "textConfig": {
+        "type": "visible",
+        "placeholderText": ""
+      }
+    },
+    {
+      "identifier": "customUserPrompt",
+      "type": "text",
+      "title": "用户指令",
+      "defaultValue": "translate from $sourceLang to $targetLang:\n\n$text",
+      "desc": "可选项。自定义 User Prompt，填写则会覆盖默认的 User Prompt，默认值为`$text`（即翻译窗口输入框内的文本）。\n\n自定义 Prompt 中可以使用与系统指令中相同的变量",
+      "textConfig": {
+        "type": "visible",
+        "height": "100",
+        "placeholderText": "translate from $sourceLang to $targetLang:\n\n$text",
+        "keyWords": [
+          "$text",
+          "$sourceLang",
+          "$targetLang"
+        ]
+      }
+    }
+  ]
+}
