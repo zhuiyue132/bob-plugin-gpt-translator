@@ -242,7 +242,7 @@ declare namespace Bob {
     | 'post'
     | 'POST'
     | 'put'
-    | 'PUT';
+    | 'PUT'| 'PATCH' | 'patch';
 
   interface HttpRequestConfig {
     url: string;

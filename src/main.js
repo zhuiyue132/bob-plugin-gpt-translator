@@ -1,7 +1,7 @@
 //@ts-check
 
 var lang = require("./lang.js");
-var ChatGPTModels = ["text-davinci-002-render-sha"];
+var ChatGPTModels = ["gpt-3.5-turbo"];
 
 var SYSTEM_PROMPT =
   "You are a translation engine that can only translate text and cannot interpret it.";
@@ -89,6 +89,7 @@ function ensureHttpsAndNoTrailingSlash(url) {
 function buildHeader() {
   return {
     "Content-Type": "application/json",
+    "Authorization": `Bearer ${$option.apiKey}`,
   };
 }
 
@@ -151,17 +152,9 @@ function replacePromptKeywords(prompt, query) {
     .replace("$targetLang", query.detectTo);
 }
 
-/**
- * @param {Bob.TranslateQuery} query
- * @returns {{
- *  model: typeof ChatGPTModels[number];
- *  prompt?: string;
- *  stream?: boolean;
- * }}
- */
 function buildRequestBody(query) {
   let { customUserPrompt } = $option;
-  const { generatedUserPrompt } = generatePrompts(query);
+  const { generatedUserPrompt, generatedSystemPrompt } = generatePrompts(query);
   customUserPrompt = replacePromptKeywords(customUserPrompt, query);
 
   const userPrompt = `${SYSTEM_PROMPT}${
@@ -171,7 +164,10 @@ function buildRequestBody(query) {
   return {
     stream: false,
     model: ChatGPTModels[0],
-    prompt: userPrompt,
+    messages: [
+      { role: "system", content: generatedSystemPrompt },
+      { role: "user", content: userPrompt },
+    ],
   };
 }
 
@@ -201,7 +197,8 @@ function translate(query, completion) {
     });
   }
 
-  const { apiUrl } = $option;
+const { apiUrl } = $option;
+
 
   if (!apiUrl) {
     completion({
@@ -215,45 +212,30 @@ function translate(query, completion) {
 
   const modifiedApiUrl = ensureHttpsAndNoTrailingSlash(apiUrl);
 
-  let apiUrlPath = "/api/conversation/talk";
-  let deleteUrl = `/api/conversation/`;
+  let apiUrlPath = "/v1/chat/completions";
 
   const header = buildHeader();
   const body = buildRequestBody(query);
 
   let targetText = ""; // 初始化拼接结果变量
-  let conversation_id = null;
   (async () => {
     await $http.request({
       method: "POST",
       url: modifiedApiUrl + apiUrlPath,
       header,
-      body: { ...body, message_id: uuid(), parent_message_id: uuid() },
+      body: { ...body },
       handler: async (result) => {
         if (result.response.statusCode >= 400) {
           handleError(completion, result);
         } else {
           $log.info(`result: ${JSON.stringify(result)}`);
 
-          targetText = result.data.message.content.parts[0];
-          conversation_id = result.data.conversation_id;
-          $log.info(`conversation_id: ${conversation_id}`);
+          targetText = result.data.choices[0].message.content;
           completion({
             result: {
               from: query.detectFrom,
               to: query.detectTo,
               toParagraphs: [targetText],
-            },
-          });
-          // 删除对话
-          // 每次翻译都是新的对话，为了避免登录网页版一看列表全是翻译记录，影响正常使用。
-          // 所以选择每次翻译后删除对话。
-          await $http.request({
-            method: "DELETE",
-            url: modifiedApiUrl + deleteUrl + conversation_id,
-            header,
-            handler: (result) => {
-              $log.info(`result: ${JSON.stringify(result)}`);
             },
           });
         }

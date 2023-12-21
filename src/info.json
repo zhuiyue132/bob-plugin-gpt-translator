@@ -12,7 +12,18 @@
       "type": "text",
       "title": "API URL",
       "defaultValue": "",
-      "desc": "部署潘多拉后的 url，最好可以公网访问，不要轻易暴露该 url，否则可能会有隐私泄露的风险",
+      "desc": "潘多拉的请求路径，也可以是官方的接口",
+      "textConfig": {
+        "type": "visible",
+        "placeholderText": ""
+      }
+    },
+    {
+      "identifier": "apiKey",
+      "type": "text",
+      "title": "API Key",
+      "defaultValue": "",
+      "desc": "潘多拉的请求 APIKey,支持 shareToken 和 poolToken与官方的 sk",
       "textConfig": {
         "type": "visible",
         "placeholderText": ""
